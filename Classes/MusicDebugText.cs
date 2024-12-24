@@ -4,35 +4,38 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(MusicBase))]
-public class MusicDebugText : MonoBehaviour
+namespace MusicEngine
 {
-	public TextMesh TextMesh;
-	public Text TextUI;
-
-	MusicBase music_;
-
-	void Awake()
+	[RequireComponent(typeof(MusicBase))]
+	public class MusicDebugText : MonoBehaviour
 	{
-		music_ = GetComponent<MusicBase>();
-		UpdateText();
-	}
+		public TextMesh TextMesh;
+		public Text TextUI;
 
-	void Update()
-	{
-		UpdateText();
-	}
+		MusicBase music_;
 
-	void UpdateText()
-	{
-		string debugText = music_.ToString();
-		if( TextMesh != null )
+		void Awake()
 		{
-			TextMesh.text = debugText;
+			music_ = GetComponent<MusicBase>();
+			UpdateText();
 		}
-		if( TextUI != null )
+
+		void Update()
 		{
-			TextUI.text = debugText;
+			UpdateText();
+		}
+
+		void UpdateText()
+		{
+			string debugText = music_.ToString();
+			if (TextMesh != null)
+			{
+				TextMesh.text = debugText;
+			}
+			if (TextUI != null)
+			{
+				TextUI.text = debugText;
+			}
 		}
 	}
 }

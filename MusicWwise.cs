@@ -1,4 +1,4 @@
-//#define Wwise
+ï»¿//#define Wwise
 #if Wwise
 
 using System;
@@ -7,256 +7,258 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Xml;
 
-public class MusicWwise : MusicBase
+namespace MusicEngine
 {
-	#region editor params
-
-	public AK.Wwise.Event Event;
-
-	public string HorizontalStateGroup;
-	public string InitialHorizontalState;
-	public string VerticalStateGroup;
-	public string InitialVerticalState;
-
-	// SwitchContainer‚Å‚ÍA”gŒ`‚ÌÄ¶‚ªI‚í‚Á‚Ä‚àƒZƒOƒƒ“ƒguNothingv‚ðÄ¶‚µ‚Ä‚¢‚éA‚Æ‚¢‚¤ó‘Ô‚É‚È‚Á‚Ä
-	// State•ÏX‚Å‚¢‚Â‚Å‚à‘¼‚ÌƒZƒOƒƒ“ƒgÄ¶‚É–ß‚ê‚éó‘Ô‚ªƒL[ƒv‚³‚ê‚Ü‚·B‚±‚Ìƒtƒ‰ƒO‚ðTrue‚É‚·‚é‚±‚Æ‚ÅA
-	// Nothing‚ÉˆÚs‚µ‚½Ž–‚ðŒŸ’m‚µ‚Ä–¾Ž¦“I‚ÉStop‚ðŒÄ‚Ño‚µAMuiscƒCƒ“ƒXƒ^ƒ“ƒX‚ðFinishó‘Ô‚ÉˆÚs‚³‚¹‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·B
-	[Tooltip("SwitchContainerÄ¶Žž‚Éƒ‹[ƒv‚µ‚È‚¢ƒZƒOƒƒ“ƒg‚ªI‚í‚Á‚½ŽžAŽ©“®“I‚ÉStop‚ðŒÄ‚Ño‚·‚±‚Æ‚ª‚Å‚«‚Ü‚·")]
-	public bool StopWhenPostExitOfLastSegment = true;
-
-	[Tooltip("SeekŽž‚É—˜—p‚³‚ê‚éB’ÊíÄ¶Žž‚ÍMeterî•ñ‚ÍÄ¶’†‚ÉŽ©“®Žæ“¾‚³‚ê‚é‚Ì‚Å•s—v‚Å‚·B")]
-	public MusicMeter DefaultMeter = new MusicMeter(0);
-
-	#endregion
-
-
-	#region params
-
-	private int currentMSec_;
-	private int sequenceEndBar_;
-	private bool endOfEvent_;
-	private Timing seekTiming_;
-
-	private uint playingId_;
-	private AkSegmentInfo segmentInfo_;
-
-	public override int SequenceIndex { get { return -1; } }
-	public override string SequenceName { get { return ""; } }
-
-	public enum ETransitionState
+	public class MusicWwise : MusicBase
 	{
-		Invalid,
-		Intro,
-		Active,
-		Outro,
-	}
-	public ETransitionState TransitionState { get; private set; } = ETransitionState.Invalid;
+		#region editor params
 
-	#endregion
+		public AK.Wwise.Event Event;
+
+		public string HorizontalStateGroup;
+		public string InitialHorizontalState;
+		public string VerticalStateGroup;
+		public string InitialVerticalState;
+
+		// SwitchContainerã§ã¯ã€æ³¢å½¢ã®å†ç”ŸãŒçµ‚ã‚ã£ã¦ã‚‚ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã€ŒNothingã€ã‚’å†ç”Ÿã—ã¦ã„ã‚‹ã€ã¨ã„ã†çŠ¶æ…‹ã«ãªã£ã¦
+		// Stateå¤‰æ›´ã§ã„ã¤ã§ã‚‚ä»–ã®ã‚»ã‚°ãƒ¡ãƒ³ãƒˆå†ç”Ÿã«æˆ»ã‚Œã‚‹çŠ¶æ…‹ãŒã‚­ãƒ¼ãƒ—ã•ã‚Œã¾ã™ã€‚ã“ã®ãƒ•ãƒ©ã‚°ã‚’Trueã«ã™ã‚‹ã“ã¨ã§ã€
+		// Nothingã«ç§»è¡Œã—ãŸäº‹ã‚’æ¤œçŸ¥ã—ã¦æ˜Žç¤ºçš„ã«Stopã‚’å‘¼ã³å‡ºã—ã€Muiscã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’FinishçŠ¶æ…‹ã«ç§»è¡Œã•ã›ã‚‹ã“ã¨ãŒã§ãã¾ã™ã€‚
+		[Tooltip("SwitchContainerå†ç”Ÿæ™‚ã«ãƒ«ãƒ¼ãƒ—ã—ãªã„ã‚»ã‚°ãƒ¡ãƒ³ãƒˆãŒçµ‚ã‚ã£ãŸæ™‚ã€è‡ªå‹•çš„ã«Stopã‚’å‘¼ã³å‡ºã™ã“ã¨ãŒã§ãã¾ã™")]
+		public bool StopWhenPostExitOfLastSegment = true;
+
+		[Tooltip("Seekæ™‚ã«åˆ©ç”¨ã•ã‚Œã‚‹ã€‚é€šå¸¸å†ç”Ÿæ™‚ã¯Meteræƒ…å ±ã¯å†ç”Ÿä¸­ã«è‡ªå‹•å–å¾—ã•ã‚Œã‚‹ã®ã§ä¸è¦ã§ã™ã€‚")]
+		public MusicMeter DefaultMeter = new MusicMeter(0);
+
+		#endregion
 
 
-	#region override functions
+		#region params
 
-	// internal
+		private int currentMSec_;
+		private int sequenceEndBar_;
+		private bool endOfEvent_;
+		private Timing seekTiming_;
 
-	protected override bool ReadyInternal()
-	{
-		DefaultMeter.Validate(0);
-		if( Event != null && Event.Id != AkSoundEngine.AK_INVALID_UNIQUE_ID )
+		private uint playingId_;
+		private AkSegmentInfo segmentInfo_;
+
+		public override int SequenceIndex { get { return -1; } }
+		public override string SequenceName { get { return ""; } }
+
+		public enum ETransitionState
 		{
+			Invalid,
+			Intro,
+			Active,
+			Outro,
+		}
+		public ETransitionState TransitionState { get; private set; } = ETransitionState.Invalid;
+
+		#endregion
+
+
+		#region override functions
+
+		// internal
+
+		protected override bool ReadyInternal()
+		{
+			DefaultMeter.Validate(0);
+			if( Event != null && Event.Id != AkSoundEngine.AK_INVALID_UNIQUE_ID )
+			{
+				return true;
+			}
+			return false;
+		}
+
+		protected override void SeekInternal(Timing seekTiming, int sequenceIndex = 0)
+		{
+			seekTiming_ = seekTiming;
+		}
+
+		protected override bool PlayInternal()
+		{
+			uint callbackFlags = (uint)(AkCallbackType.AK_EnableGetMusicPlayPosition | AkCallbackType.AK_MusicSyncEntry | AkCallbackType.AK_EndOfEvent);
+			playingId_ = Event.Post(this.gameObject,callbackFlags, AkEventCallback);
+			TransitionState = ETransitionState.Intro;
+
+			if( seekTiming_ != null && seekTiming_ >= Timing.Zero )
+			{
+				AkSoundEngine.SeekOnEvent(Event.Id, gameObject, (int)DefaultMeter.GetMilliSecondsFromTiming(seekTiming_));
+			}
+
+			return (playingId_ != AkSoundEngine.AK_INVALID_PLAYING_ID);
+		}
+
+		protected override bool SuspendInternal()
+		{
+			Event.ExecuteAction(gameObject, AkActionOnEventType.AkActionOnEventType_Pause, 0, AkCurveInterpolation.AkCurveInterpolation_Linear);
 			return true;
 		}
-		return false;
-	}
 
-	protected override void SeekInternal(Timing seekTiming, int sequenceIndex = 0)
-	{
-		seekTiming_ = seekTiming;
-	}
-
-	protected override bool PlayInternal()
-	{
-		uint callbackFlags = (uint)(AkCallbackType.AK_EnableGetMusicPlayPosition | AkCallbackType.AK_MusicSyncEntry | AkCallbackType.AK_EndOfEvent);
-		playingId_ = Event.Post(this.gameObject,callbackFlags, AkEventCallback);
-		TransitionState = ETransitionState.Intro;
-
-		if( seekTiming_ != null && seekTiming_ >= Timing.Zero )
+		protected override bool ResumeInternal()
 		{
-			AkSoundEngine.SeekOnEvent(Event.Id, gameObject, (int)DefaultMeter.GetMilliSecondsFromTiming(seekTiming_));
+			Event.ExecuteAction(gameObject, AkActionOnEventType.AkActionOnEventType_Resume, 0, AkCurveInterpolation.AkCurveInterpolation_Linear);
+			return true;
 		}
 
-		return (playingId_ != AkSoundEngine.AK_INVALID_PLAYING_ID);
-	}
-
-	protected override bool SuspendInternal()
-	{
-		Event.ExecuteAction(gameObject, AkActionOnEventType.AkActionOnEventType_Pause, 0, AkCurveInterpolation.AkCurveInterpolation_Linear);
-		return true;
-	}
-
-	protected override bool ResumeInternal()
-	{
-		Event.ExecuteAction(gameObject, AkActionOnEventType.AkActionOnEventType_Resume, 0, AkCurveInterpolation.AkCurveInterpolation_Linear);
-		return true;
-	}
-
-	protected override bool StopInternal()
-	{
-		AkSoundEngine.StopPlayingID(playingId_);
-		return true;
-	}
-
-	protected override void ResetParamsInternal()
-	{
-		seekTiming_ = null;
-		currentMSec_ = 0;
-		sequenceEndBar_ = 0;
-		endOfEvent_ = false;
-		playingId_ = AkSoundEngine.AK_INVALID_PLAYING_ID;
-		TransitionState = ETransitionState.Invalid;
-		segmentInfo_ = new AkSegmentInfo();
-		if( string.IsNullOrEmpty(HorizontalStateGroup) == false && string.IsNullOrEmpty(InitialHorizontalState) == false )
+		protected override bool StopInternal()
 		{
-			AkSoundEngine.SetState(HorizontalStateGroup, InitialHorizontalState);
+			AkSoundEngine.StopPlayingID(playingId_);
+			return true;
 		}
-		if( string.IsNullOrEmpty(VerticalStateGroup) == false && string.IsNullOrEmpty(InitialVerticalState) == false )
+
+		protected override void ResetParamsInternal()
 		{
-			AkSoundEngine.SetState(VerticalStateGroup, InitialVerticalState);
-		}
-	}
-
-	// timing
-
-	protected override void UpdateTimingInternal()
-	{
-		AkSoundEngine.GetPlayingSegmentInfo(playingId_, segmentInfo_);
-		currentMSec_ = segmentInfo_.iCurrentPosition;
-
-		bool isActiveSegmentIsNothing = segmentInfo_.iPreEntryDuration == 0 && segmentInfo_.iPostExitDuration == 0 && segmentInfo_.iActiveDuration == 0;
-		if( TransitionState == ETransitionState.Intro && isActiveSegmentIsNothing == false )
-		{
-			TransitionState = ETransitionState.Active;
-		}
-		else if( TransitionState == ETransitionState.Active )
-		{
-			if( isActiveSegmentIsNothing )
-			{
-				if( StopWhenPostExitOfLastSegment )
-				{
-					endOfEvent_ = true;
-				}
-				else
-				{
-					TransitionState = ETransitionState.Outro;
-				}
-			}
-			else if( currentMeter_ == null )
-			{
-				CalcMeter(segmentInfo_.fBeatDuration, segmentInfo_.fBarDuration, segmentInfo_.iActiveDuration);
-			}
-		}
-	}
-
-	protected override void CalcTimingAndFraction(ref Timing just, out float fraction)
-	{
-		if( currentMeter_ == null )
-		{
-			just.Set(-1, 0, 0);
-			fraction = 0;
-		}
-		else
-		{
-			just.Set(currentMeter_.GetTimingFromMilliSeconds(currentMSec_));
-			fraction = (float)((currentMSec_ - currentMeter_.GetMilliSecondsFromTiming(just)) / currentMeter_.MSecPerUnit);
-		}
-	}
-
-	protected override Timing GetSequenceEndTiming()
-	{
-		return sequenceEndBar_ > 0 ? new Timing(sequenceEndBar_) : null;
-	}
-
-	// update
-
-	protected override bool CheckFinishPlaying()
-	{
-		if( endOfEvent_ )
-		{
+			seekTiming_ = null;
+			currentMSec_ = 0;
+			sequenceEndBar_ = 0;
 			endOfEvent_ = false;
-			return true;
+			playingId_ = AkSoundEngine.AK_INVALID_PLAYING_ID;
+			TransitionState = ETransitionState.Invalid;
+			segmentInfo_ = new AkSegmentInfo();
+			if( string.IsNullOrEmpty(HorizontalStateGroup) == false && string.IsNullOrEmpty(InitialHorizontalState) == false )
+			{
+				AkSoundEngine.SetState(HorizontalStateGroup, InitialHorizontalState);
+			}
+			if( string.IsNullOrEmpty(VerticalStateGroup) == false && string.IsNullOrEmpty(InitialVerticalState) == false )
+			{
+				AkSoundEngine.SetState(VerticalStateGroup, InitialVerticalState);
+			}
 		}
-		return false;
-	}
 
-	protected override void UpdateInternal()
-	{
+		// timing
 
-	}
-
-	// interactive music
-
-	public override void SetHorizontalSequence(string name)
-	{
-		if( string.IsNullOrEmpty(HorizontalStateGroup) == false )
+		protected override void UpdateTimingInternal()
 		{
-			AkSoundEngine.SetState(HorizontalStateGroup, name);
-		}
-	}
+			AkSoundEngine.GetPlayingSegmentInfo(playingId_, segmentInfo_);
+			currentMSec_ = segmentInfo_.iCurrentPosition;
 
-	public override void SetHorizontalSequenceByIndex(int index)
-	{
-		print("SetHorizontalSequenceByIndex is not implemented in MusicWwise");
-	}
-
-	public override void SetVerticalMix(string name)
-	{
-		if( string.IsNullOrEmpty(VerticalStateGroup) == false )
-		{
-			AkSoundEngine.SetState(VerticalStateGroup, name);
-		}
-	}
-
-	public override void SetVerticalMixByIndex(int index)
-	{
-		print("SetVerticalMixByIndex is not implemented in MusicWwise");
-	}
-
-	#endregion
-
-
-	#region callback / utils
-
-	void AkEventCallback(object in_cookie, AkCallbackType in_type, AkCallbackInfo in_info)
-	{
-		switch( in_type )
-		{
-			case AkCallbackType.AK_MusicSyncEntry:
-				AkMusicSyncCallbackInfo musicSyncCallbackInfo = in_info as AkMusicSyncCallbackInfo;
-				CalcMeter(musicSyncCallbackInfo.segmentInfo_fBeatDuration,
-						  musicSyncCallbackInfo.segmentInfo_fBarDuration,
-						  musicSyncCallbackInfo.segmentInfo_iActiveDuration);
-				break;
-			case AkCallbackType.AK_EndOfEvent:
-				AkEventCallbackInfo endInfo = in_info as AkEventCallbackInfo;
-				if( endInfo.playingID == playingId_ )
+			bool isActiveSegmentIsNothing = segmentInfo_.iPreEntryDuration == 0 && segmentInfo_.iPostExitDuration == 0 && segmentInfo_.iActiveDuration == 0;
+			if( TransitionState == ETransitionState.Intro && isActiveSegmentIsNothing == false )
+			{
+				TransitionState = ETransitionState.Active;
+			}
+			else if( TransitionState == ETransitionState.Active )
+			{
+				if( isActiveSegmentIsNothing )
 				{
-					endOfEvent_ = true;
+					if( StopWhenPostExitOfLastSegment )
+					{
+						endOfEvent_ = true;
+					}
+					else
+					{
+						TransitionState = ETransitionState.Outro;
+					}
 				}
-				break;
+				else if( currentMeter_ == null )
+				{
+					CalcMeter(segmentInfo_.fBeatDuration, segmentInfo_.fBarDuration, segmentInfo_.iActiveDuration);
+				}
+			}
 		}
-	}
 
-	void CalcMeter(float fBeatDuration, float fBarDuration, int iActiveDuration)
-	{
-		double tempo = 60.0 / fBeatDuration;
-		int unitPerBeat = 4;
-		int unitPerBar = Mathf.RoundToInt(unitPerBeat * (fBarDuration / fBeatDuration));
-		currentMeter_ = new MusicMeter(0, unitPerBeat, unitPerBar, tempo);
-		sequenceEndBar_ = Mathf.RoundToInt((iActiveDuration / 1000.0f) / fBarDuration);
-		currentMeter_.Validate(0);
-	}
+		protected override void CalcTimingAndFraction(ref Timing just, out float fraction)
+		{
+			if( currentMeter_ == null )
+			{
+				just.Set(-1, 0, 0);
+				fraction = 0;
+			}
+			else
+			{
+				just.Set(currentMeter_.GetTimingFromMilliSeconds(currentMSec_));
+				fraction = (float)((currentMSec_ - currentMeter_.GetMilliSecondsFromTiming(just)) / currentMeter_.MSecPerUnit);
+			}
+		}
 
-	#endregion
+		protected override Timing GetSequenceEndTiming()
+		{
+			return sequenceEndBar_ > 0 ? new Timing(sequenceEndBar_) : null;
+		}
+
+		// update
+
+		protected override bool CheckFinishPlaying()
+		{
+			if( endOfEvent_ )
+			{
+				endOfEvent_ = false;
+				return true;
+			}
+			return false;
+		}
+
+		protected override void UpdateInternal()
+		{
+
+		}
+
+		// interactive music
+
+		public override void SetHorizontalSequence(string name)
+		{
+			if( string.IsNullOrEmpty(HorizontalStateGroup) == false )
+			{
+				AkSoundEngine.SetState(HorizontalStateGroup, name);
+			}
+		}
+
+		public override void SetHorizontalSequenceByIndex(int index)
+		{
+			print("SetHorizontalSequenceByIndex is not implemented in MusicWwise");
+		}
+
+		public override void SetVerticalMix(string name)
+		{
+			if( string.IsNullOrEmpty(VerticalStateGroup) == false )
+			{
+				AkSoundEngine.SetState(VerticalStateGroup, name);
+			}
+		}
+
+		public override void SetVerticalMixByIndex(int index)
+		{
+			print("SetVerticalMixByIndex is not implemented in MusicWwise");
+		}
+
+		#endregion
+
+
+		#region callback / utils
+
+		void AkEventCallback(object in_cookie, AkCallbackType in_type, AkCallbackInfo in_info)
+		{
+			switch( in_type )
+			{
+				case AkCallbackType.AK_MusicSyncEntry:
+					AkMusicSyncCallbackInfo musicSyncCallbackInfo = in_info as AkMusicSyncCallbackInfo;
+					CalcMeter(musicSyncCallbackInfo.segmentInfo_fBeatDuration,
+							  musicSyncCallbackInfo.segmentInfo_fBarDuration,
+							  musicSyncCallbackInfo.segmentInfo_iActiveDuration);
+					break;
+				case AkCallbackType.AK_EndOfEvent:
+					AkEventCallbackInfo endInfo = in_info as AkEventCallbackInfo;
+					if( endInfo.playingID == playingId_ )
+					{
+						endOfEvent_ = true;
+					}
+					break;
+			}
+		}
+
+		void CalcMeter(float fBeatDuration, float fBarDuration, int iActiveDuration)
+		{
+			double tempo = 60.0 / fBeatDuration;
+			int unitPerBeat = 4;
+			int unitPerBar = Mathf.RoundToInt(unitPerBeat * (fBarDuration / fBeatDuration));
+			currentMeter_ = new MusicMeter(0, unitPerBeat, unitPerBar, tempo);
+			sequenceEndBar_ = Mathf.RoundToInt((iActiveDuration / 1000.0f) / fBarDuration);
+			currentMeter_.Validate(0);
+		}
+
+		#endregion
+	}
 }
-
 #endif
